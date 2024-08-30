@@ -1,22 +1,37 @@
-# MICROPROYECTO_1_COMP
+# **MICROPROYECTO_1_COMP**
 
-##########################################################
+## Descripción
+Este microproyecto consiste en la instalación y configuración de Consul en un entorno con tres servidores: HAPROXY, appServer1 y appServer2. Además, se desplegará un servicio de Node.js en los servidores web para ilustrar cómo interactúan los componentes mediante balanceo de carga.
 
-# Instalar Consul en los 3 servidores (HAPROXY, web1 y web2):
+---
 
-#Comando 1: 
+## **Requisitos Previos**
+- Tres servidores configurados: HAPROXY, appServer1 y appServer2.
+- Acceso de administrador a los servidores.
+- Git instalado en appServer1 y appServer2.
+- Node.js instalado en appServer1 y appServer2.
 
-(Para arquitectura AMD):
+---
+
+## **1. Instalación de Consul en los Servidores**
+Consul debe instalarse en los tres servidores para permitir la comunicación y el descubrimiento de servicios.
+
+### Para arquitectura **AMD**:
+```bash
 curl -O https://releases.hashicorp.com/consul/1.11.3/consul_1.11.3_linux_amd64.zip
+```
 
-# (Para arquitectura ARM):
+### Para arquitectura **ARM**:
+```bash
 wget https://releases.hashicorp.com/consul/1.14.1/consul_1.14.1_linux_arm64.zip
+```
 
+---
 
-##########################################################
+## **2. Configuración de Consul en HAPROXY**
+Configura Consul como servidor en HAPROXY para gestionar la comunicación y supervisión del clúster.
 
-# Configuracion de Consul en el servidor HAPROXY:
-
+```bash
 cat <<EOF | sudo tee /etc/consul.d/consul.hcl
 data_dir = "/opt/consul"
 server = true
@@ -24,92 +39,100 @@ bootstrap_expect = 1
 bind_addr = "192.168.50.15"
 client_addr = "0.0.0.0"
 EOF
+```
 
-##########################################################
+---
 
-# Configurar Consul como agente en web 1 y web 2
+## **3. Configuración de Consul como Agente en appServer1 y appServer2**
+Los servidores appServer1 y appServer2 actuarán como agentes y se unirán al servidor Consul en HAPROXY.
 
+```bash
 cat <<EOF | sudo tee /etc/consul.d/consul.hcl
 data_dir = "/opt/consul"
 retry_join = ["192.168.50.15"]
 EOF
+```
 
-##########################################################
+---
 
-# Clonar el repositorio del servicio de node en web1 y web2
+## **4. Despliegue del Servicio Node.js en appServer1 y appServer2**
+Clona el repositorio del servicio en ambos servidores y realiza las configuraciones necesarias.
 
+```bash
 git clone https://github.com/omondragon/consulService
-
-# dirigirse a la carpeta donde se clono el repositorio:
-
 cd consulService/app
+```
 
-# Modificar el archivo index.js colocando el la ip del servidor correspondiente
+### Modifica el archivo `index.js`:
+- **Para web1**:
+  Cambia:
+  ```js
+  const HOST='192.168.100.3';
+  ```
+  por:
+  ```js
+  const HOST='192.168.56.11';
+  ```
 
-sudo nano index.js
+- **Para web2**:
+  Cambia:
+  ```js
+  const HOST='192.168.100.3';
+  ```
+  por:
+  ```js
+  const HOST='192.168.56.12';
+  ```
 
-# para web 1 modificar la linea:
+---
 
-conts HOST='192.168.100.3'
+## **5. Iniciar Consul como Servicio**
 
-# por
-
-conts HOST='192.168.56.11'
-
-# para web 2 modificar la linea:
-
-conts HOST='192.168.100.3'
-
-# por
-
-conts HOST='192.168.56.12'
-
-##########################################################
-
-# Iniciar Consul como servicio para HAPROXY
+### En **HAPROXY**:
+```bash
 nohup consul agent -server -bind=192.168.50.15 -data-dir=/opt/consul -config-dir=/etc/consul.d/ -ui &
+```
 
-##########################################################
+### En **web1**:
+```bash
+nohup consul agent -node=appServer1 -bind=192.168.50.13 -data-dir=/opt/consul -config-dir=/etc/consul.d/ -join=192.168.50.15 -ui &
+```
 
-# Iniciar Consul como servicio para web 1
-nohup consul agent -node=web1 -bind=192.168.50.13 -data-dir=/opt/consul -config-dir=/etc/consul.d/ -join=192.168.50.15 -ui &
+### En **web2**:
+```bash
+nohup consul agent -node=appServer2 -bind=192.168.50.14 -data-dir=/opt/consul -config-dir=/etc/consul.d/ -join=192.168.50.15 -ui &
+```
 
-##########################################################
+---
 
-# Iniciar Consul como servicio para web 2
-nohup consul agent -node=web2 -bind=192.168.50.14 -data-dir=/opt/consul -config-dir=/etc/consul.d/ -join=192.168.50.15 -ui &
+## **6. Arrancar Servidores Node en appServer1 y appServer2**
+Dirígete a la ubicación del archivo `index.js` en el repositorio clonado y ejecuta las instancias de Node.js.
 
-##########################################################
-
-# Arrancar servidores node en web1 y web2:
-
-# Dirigirse a la ubucacion de inex.js del repositorio clonado:
-
+```bash
 cd consulService/app
-
-# Arrancar 3 instancias de node:
-
 nohup node index.js 3000 &
 nohup node index.js 3001 &
 nohup node index.js 3002 &
+```
 
-##########################################################
+---
 
-# Apagar servidores de node:
+## **7. Apagar Servidores de Node.js**
+Para detener las instancias de Node.js en ejecución:
 
-# Buscar los PID de todos los procesos de node que estan corriendo  :
+1. Encuentra los procesos activos:
+   ```bash
+   ps aux | grep node
+   ```
 
-ps aux | grep node
+2. Termina los procesos:
+   ```bash
+   sudo kill -9 <PID_NUMBER>
+   ```
 
-# Matar los procesos requeridos:
+---
 
-sudo kill -9 <PID_NUMBER>
-
-##########################################################
-
-URLS:
-Consul: http://192.168.56.13:8500/ui
-HAProxy: http://192.168.56.13/haproxy?stats
-Peticiones balanceadas: http://192.168.56.13
-
-##########################################################
+## **URLs Importantes**
+- **Consul UI**: [http://192.168.56.13:8500/ui](http://192.168.56.13:8500/ui)
+- **HAProxy Stats**: [http://192.168.56.13/haproxy?stats](http://192.168.56.13/haproxy?stats)
+- **Peticiones Balanceadas**: [http://192.168.56.13](http://192.168.56.13)
