@@ -64,24 +64,24 @@ cd consulService/app
 ```
 
 ### Modifica el archivo `index.js`:
-- **Para web1**:
+- **Para appServer1**:
   Cambia:
   ```js
   const HOST='192.168.100.3';
   ```
   por:
   ```js
-  const HOST='192.168.56.11';
+  const HOST='192.168.50.13';
   ```
 
-- **Para web2**:
+- **Para appServer2**:
   Cambia:
   ```js
   const HOST='192.168.100.3';
   ```
   por:
   ```js
-  const HOST='192.168.56.12';
+  const HOST='192.168.50.14';
   ```
 
 ---
@@ -93,12 +93,12 @@ cd consulService/app
 nohup consul agent -server -bind=192.168.50.15 -data-dir=/opt/consul -config-dir=/etc/consul.d/ -ui &
 ```
 
-### En **web1**:
+### En **appServer1**:
 ```bash
 nohup consul agent -node=appServer1 -bind=192.168.50.13 -data-dir=/opt/consul -config-dir=/etc/consul.d/ -join=192.168.50.15 -ui &
 ```
 
-### En **web2**:
+### En **appServer2**:
 ```bash
 nohup consul agent -node=appServer2 -bind=192.168.50.14 -data-dir=/opt/consul -config-dir=/etc/consul.d/ -join=192.168.50.15 -ui &
 ```
