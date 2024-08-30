@@ -117,7 +117,7 @@ nohup node index.js 3002 &
 
 ---
 
-## **7. Apagar Servidores de Node.js**
+## **7. Apagar Servicios de Node.js**
 Para detener las instancias de Node.js en ejecución:
 
 1. Encuentra los procesos activos:
@@ -132,7 +132,22 @@ Para detener las instancias de Node.js en ejecución:
 
 ---
 
+## **8. Apagar Servicios de Apache2**
+Para detener los servicios de Apache de appServer1 y appServer2
+
+1. Ejecutar para Apagar:
+   ```bash
+   sudo systemctl stop apache2
+   ```
+
+2. Ejecutar para Reinciar:
+   ```bash
+   sudo systemctl start apache2
+   ```
+
+---
+
 ## **URLs Importantes**
-- **Consul UI**: [http://192.168.56.13:8500/ui](http://192.168.56.13:8500/ui)
-- **HAProxy Stats**: [http://192.168.56.13/haproxy?stats](http://192.168.56.13/haproxy?stats)
-- **Peticiones Balanceadas**: [http://192.168.56.13](http://192.168.56.13)
+- **Consul UI**: [http://192.168.50.15:8500/ui](http://192.168.50.15:8500/ui)
+- **HAProxy Stats**: [http://192.168.50.15/haproxy?stats](http://192.168.50.15/haproxy?stats)
+- **Peticiones Balanceadas**: [http://192.168.50.15](http://192.168.50.15)
